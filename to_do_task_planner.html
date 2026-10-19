@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronos Mind - Intelligent Task & Goal Planner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for sleeker UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans min-h-full flex flex-col transition-colors duration-200">
+
+    <!-- App Header -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-brand-500 text-white rounded-xl shadow-md">
+                    <i data-lucide="check-square" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-brand-500 dark:to-indigo-400">
+                        ChronosMind
+                    </h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Intelligent Task & Life Planner</p>
+                </div>
+            </div>
+
+            <!-- View Navigation Tabs -->
+            <nav class="hidden md:flex items-center space-x-1 bg-slate-100 dark:bg-slate-700/50 p-1 rounded-xl">
+                <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center space-x-1.5 text-brand-600 dark:text-brand-400 bg-white dark:bg-slate-800 shadow-sm">
+                    <i data-lucide="sun" class="w-4 h-4"></i>
+                    <span>Daily</span>
+                </button>
+                <button onclick="switchTab('weekly')" id="tab-weekly" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                    <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                    <span>Weekly</span>
+                </button>
+                <button onclick="switchTab('monthly')" id="tab-monthly" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    <span>Monthly</span>
+                </button>
+                <button onclick="switchTab('yearly')" id="tab-yearly" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                    <i data-lucide="target" class="w-4 h-4"></i>
+                    <span>Yearly</span>
+                </button>
+                <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                    <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                    <span>Analytics</span>
+                </button>
+            </nav>
+
+            <!-- Actions Right -->
+            <div class="flex items-center space-x-2">
+                <button onclick="openNewTaskModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-2 rounded-xl text-sm font-medium flex items-center space-x-1.5 shadow-sm transition-all hover:shadow-md">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Add Task</span>
+                </button>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Toggle Theme">
+                    <i data-lucide="moon" id="theme-icon" class="w-5 h-5"></i>
+                </button>
+                <button onclick="openSettingsModal()" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Settings & Data">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Bar -->
+    <div class="md:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-2 py-2 flex justify-around">
+        <button onclick="switchTab('daily')" class="tab-btn-m p-2 text-brand-600 flex flex-col items-center text-xs font-medium" id="mtab-daily">
+            <i data-lucide="sun" class="w-5 h-5 mb-0.5"></i> Daily
+        </button>
+        <button onclick="switchTab('weekly')" class="tab-btn-m p-2 text-slate-500 flex flex-col items-center text-xs font-medium" id="mtab-weekly">
+            <i data-lucide="calendar-days" class="w-5 h-5 mb-0.5"></i> Weekly
+        </button>
+        <button onclick="switchTab('monthly')" class="tab-btn-m p-2 text-slate-500 flex flex-col items-center text-xs font-medium" id="mtab-monthly">
+            <i data-lucide="calendar" class="w-5 h-5 mb-0.5"></i> Monthly
+        </button>
+        <button onclick="switchTab('yearly')" class="tab-btn-m p-2 text-slate-500 flex flex-col items-center text-xs font-medium" id="mtab-yearly">
+            <i data-lucide="target" class="w-5 h-5 mb-0.5"></i> Yearly
+        </button>
+        <button onclick="switchTab('analytics')" class="tab-btn-m p-2 text-slate-500 flex flex-col items-center text-xs font-medium" id="mtab-analytics">
+            <i data-lucide="bar-chart-2" class="w-5 h-5 mb-0.5"></i> Analytics
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner / Notification for Overcommitment or Rollover -->
+        <div id="capacity-warning" class="hidden mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 dark:bg-amber-900/30 dark:border-amber-800 flex items-start space-x-3 text-amber-800 dark:text-amber-200">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+            <div class="flex-1 text-sm">
+                <span class="font-semibold">Capacity Warning:</span> You have assigned more than 3 <span class="font-bold underline">Major Goals</span> for today. Overcommitting reduces focus quality and increases burnout risk. Consider shifting minor tasks or rescheduling.
+            </div>
+            <button onclick="document.getElementById('capacity-warning').classList.add('hidden')" class="text-amber-500 hover:text-amber-700"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <!-- 1. DAILY PLANNER VIEW -->
+        <section id="view-daily" class="view-content space-y-6">
+            <!-- Daily Controls & Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center space-x-3">
+                    <button onclick="changeDailyDate(-1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                    <input type="date" id="daily-date-picker" onchange="onDailyDateChange(this.value)" class="bg-transparent font-semibold text-lg border-none focus:outline-none dark:text-white cursor-pointer">
+                    <button onclick="changeDailyDate(1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                    <button onclick="setDailyToday()" class="px-3 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-lg">Today</button>
+                </div>
+                
+                <!-- Quick Filter & Search -->
+                <div class="flex items-center space-x-2">
+                    <div class="relative flex-1 sm:w-48">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                        <input type="text" id="daily-search" oninput="renderDailyTasks()" placeholder="Search tasks..." class="w-full pl-9 pr-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <select id="daily-filter" onchange="renderDailyTasks()" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm rounded-xl px-3 py-1.5 focus:outline-none">
+                        <option value="all">All Priorities</option>
+                        <option value="major">Major Only</option>
+                        <option value="minor">Minor Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Major vs Minor Split Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Major Tasks Column -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col">
+                    <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-700">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                            <h2 class="font-bold text-slate-800 dark:text-slate-100">Major Tasks (High Impact)</h2>
+                            <span id="major-count-badge" class="px-2 py-0.5 text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 rounded-full">0/3</span>
+                        </div>
+                        <button onclick="openNewTaskModal('major')" class="text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline flex items-center"><i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Add Major</button>
+                    </div>
+                    <div id="major-tasks-list" class="space-y-3 flex-1 min-h-[150px]">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- Minor Tasks Column -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col">
+                    <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-700">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                            <h2 class="font-bold text-slate-800 dark:text-slate-100">Minor Tasks & Quick Wins</h2>
+                            <span id="minor-count-badge" class="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full">0</span>
+                        </div>
+                        <button onclick="openNewTaskModal('minor')" class="text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline flex items-center"><i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Add Minor</button>
+                    </div>
+                    <div id="minor-tasks-list" class="space-y-3 flex-1 min-h-[150px]">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hourly Time Block Visualizer -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
+                    <i data-lucide="clock" class="w-4 h-4 mr-2 text-brand-500"></i> Time-Block Schedule
+                </h3>
+                <div id="hourly-schedule" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    <!-- Dynamic hourly slots rendered here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. WEEKLY PLANNER VIEW -->
+        <section id="view-weekly" class="view-content hidden space-y-6">
+            <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center space-x-3">
+                    <button onclick="changeWeek(-1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                    <span id="weekly-range-label" class="font-semibold text-lg dark:text-white">Week Range</span>
+                    <button onclick="changeWeek(1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                </div>
+                <button onclick="setWeekCurrent()" class="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-lg">This Week</button>
+            </div>
+
+            <!-- 7-Day Grid Overview -->
+            <div id="weekly-grid" class="grid grid-cols-1 md:grid-cols-7 gap-4">
+                <!-- Rendered dynamically -->
+            </div>
+        </section>
+
+        <!-- 3. MONTHLY PLANNER VIEW -->
+        <section id="view-monthly" class="view-content hidden space-y-6">
+            <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center space-x-3">
+                    <button onclick="changeMonth(-1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                    <span id="monthly-label" class="font-semibold text-lg dark:text-white">Month Year</span>
+                    <button onclick="changeMonth(1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                </div>
+                <button onclick="openMonthlyGoalModal()" class="px-3 py-1.5 text-xs font-medium bg-brand-600 text-white hover:bg-brand-700 rounded-lg flex items-center"><i data-lucide="target" class="w-3.5 h-3.5 mr-1"></i> Set Monthly Focus</button>
+            </div>
+
+            <!-- Monthly Focus Banner -->
+            <div id="monthly-focus-banner" class="bg-gradient-to-r from-brand-500 to-indigo-600 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-medium text-brand-100 uppercase tracking-wider">Primary Monthly Goal</span>
+                    <p id="monthly-goal-text" class="text-lg font-bold">No goal set for this month yet. Click to define!</p>
+                </div>
+                <button onclick="openMonthlyGoalModal()" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg backdrop-blur-sm">Edit Focus</button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="grid grid-cols-7 gap-1 text-center font-semibold text-xs text-slate-400 mb-2">
+                    <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+                </div>
+                <div id="monthly-calendar-grid" class="grid grid-cols-7 gap-1">
+                    <!-- Dynamic Month Days -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. YEARLY GOALS ROADMAP -->
+        <section id="view-yearly" class="view-content hidden space-y-6">
+            <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center space-x-3">
+                    <button onclick="changeYear(-1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                    <span id="yearly-label" class="font-semibold text-lg dark:text-white">Year 2026</span>
+                    <button onclick="changeYear(1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                </div>
+                <button onclick="openYearlyGoalModal()" class="px-3 py-1.5 text-xs font-medium bg-brand-600 text-white hover:bg-brand-700 rounded-lg flex items-center"><i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Add Milestone</button>
+            </div>
+
+            <!-- 4 Quarter Roadmap -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Q1 -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700 mb-3">
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100">Q1 (Jan - Mar)</h3>
+                        <span class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">Quarter 1</span>
+                    </div>
+                    <div id="yearly-q1-list" class="space-y-2 flex-1 min-h-[200px]"></div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700 mb-3">
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100">Q2 (Apr - Jun)</h3>
+                        <span class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">Quarter 2</span>
+                    </div>
+                    <div id="yearly-q2-list" class="space-y-2 flex-1 min-h-[200px]"></div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700 mb-3">
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100">Q3 (Jul - Sep)</h3>
+                        <span class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">Quarter 3</span>
+                    </div>
+                    <div id="yearly-q3-list" class="space-y-2 flex-1 min-h-[200px]"></div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700 mb-3">
+                        <h3 class="font-bold text-slate-800 dark:text-slate-100">Q4 (Oct - Dec)</h3>
+                        <span class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">Quarter 4</span>
+                    </div>
+                    <div id="yearly-q4-list" class="space-y-2 flex-1 min-h-[200px]"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. ANALYTICS & CONSISTENCY REPORT DASHBOARD -->
+        <section id="view-analytics" class="view-content hidden space-y-6">
+            <!-- Top Stats Summary -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Completion Rate</p>
+                        <h4 id="stat-completion-rate" class="text-2xl font-bold text-slate-800 dark:text-white mt-1">0%</h4>
+                    </div>
+                    <div class="p-3 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-xl">
+                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Consistency Streak</p>
+                        <h4 id="stat-streak" class="text-2xl font-bold text-slate-800 dark:text-white mt-1">0 Days</h4>
+                    </div>
+                    <div class="p-3 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-xl">
+                        <i data-lucide="flame" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Major Goals Done</p>
+                        <h4 id="stat-major-done" class="text-2xl font-bold text-slate-800 dark:text-white mt-1">0</h4>
+                    </div>
+                    <div class="p-3 bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 rounded-xl">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Total Unaccomplished</p>
+                        <h4 id="stat-missed-count" class="text-2xl font-bold text-slate-800 dark:text-white mt-1">0</h4>
+                    </div>
+                    <div class="p-3 bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 rounded-xl">
+                        <i data-lucide="x-circle" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Bottleneck Analysis (Why tasks were missed) -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center">
+                        <i data-lucide="help-circle" class="w-4 h-4 mr-2 text-rose-500"></i> Task Bottleneck Breakdown (Why Missed?)
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">Identifies personal barriers preventing task execution.</p>
+                    <div class="h-64 relative">
+                        <canvas id="chart-bottlenecks"></canvas>
+                    </div>
+                </div>
+
+                <!-- Major vs Minor Accomplishment Ratio -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center">
+                        <i data-lucide="pie-chart" class="w-4 h-4 mr-2 text-brand-500"></i> Priority Distribution
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">Comparison of Major (High Impact) vs Minor tasks created and finished.</p>
+                    <div class="h-64 relative">
+                        <canvas id="chart-priority-ratio"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Qualitative Reflection Summary Log -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
+                    <i data-lucide="book-open" class="w-4 h-4 mr-2 text-indigo-500"></i> Reflection & Accountability Log
+                </h3>
+                <div id="reflection-log-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                    <!-- Dynamic reflection entries -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- NEW TASK MODAL -->
+    <div id="modal-task" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 id="modal-task-title" class="font-bold text-lg dark:text-white">Create New Task</h3>
+                <button onclick="closeModal('modal-task')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <form id="form-task" onsubmit="handleSaveTask(event)" class="space-y-4 mt-4">
+                <input type="hidden" id="task-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Task Title *</label>
+                    <input type="text" id="task-title" required placeholder="e.g., Finalize Quarterly Report" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Date *</label>
+                        <input type="date" id="task-date" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Time (Optional)</label>
+                        <input type="time" id="task-time" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Priority Hierarchy *</label>
+                        <select id="task-priority" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm">
+                            <option value="major">Major Goal (High Impact)</option>
+                            <option value="minor">Minor Task (Quick Win)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Estimated Mins</label>
+                        <input type="number" id="task-duration" min="5" step="5" value="30" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Description / Subtasks</label>
+                    <textarea id="task-desc" rows="2" placeholder="Key steps, links, or context..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeModal('modal-task')" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TASK STATUS / REFLECTION MODAL -->
+    <div id="modal-reflection" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="font-bold text-lg dark:text-white" id="reflection-modal-title">Task Reflection</h3>
+                <button onclick="closeModal('modal-reflection')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <form id="form-reflection" onsubmit="handleSaveReflection(event)" class="space-y-4 mt-4">
+                <input type="hidden" id="reflect-task-id">
+                <input type="hidden" id="reflect-status-target">
+
+                <div id="missed-reason-container">
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Primary Reason Missed / Delayed *</label>
+                    <select id="reflect-reason" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm">
+                        <option value="Poor Time Estimation">Poor Time Estimation</option>
+                        <option value="Unexpected Distractions">Unexpected Distractions</option>
+                        <option value="Low Energy / Fatigue">Low Energy / Fatigue</option>
+                        <option value="External Blocker">External Blocker / Waiting on others</option>
+                        <option value="Priority Shifted">Priority Shifted</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Reflection / Takeaways (Optional)</label>
+                    <textarea id="reflect-notes" rows="3" placeholder="What can be done differently next time? What went well or wrong?" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm"></textarea>
+                </div>
+
+                <div id="rollover-option" class="flex items-center space-x-2 pt-2">
+                    <input type="checkbox" id="reflect-rollover" class="rounded text-brand-600 focus:ring-brand-500">
+                    <label for="reflect-rollover" class="text-xs text-slate-600 dark:text-slate-300">Automatically roll over this task to tomorrow</label>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeModal('modal-reflection')" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Confirm Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MONTHLY GOAL MODAL -->
+    <div id="modal-monthly-goal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+            <h3 class="font-bold text-lg dark:text-white mb-4">Set Monthly Focus Goal</h3>
+            <input type="text" id="monthly-goal-input" placeholder="e.g., Complete AWS Certification or Ship MVP" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white text-sm mb-4">
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModal('modal-monthly-goal')" class="px-4 py-2 text-sm text-slate-500">Cancel</button>
+                <button onclick="saveMonthlyGoal()" class="px-4 py-2 text-sm bg-brand-600 text-white rounded-xl">Save Focus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- YEARLY MILESTONE MODAL -->
+    <div id="modal-yearly-goal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+            <h3 class="font-bold text-lg dark:text-white mb-4">Add Yearly Milestone Goal</h3>
+            <form id="form-yearly-goal" onsubmit="handleSaveYearlyGoal(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Target Quarter</label>
+                    <select id="yearly-quarter" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm dark:text-white">
+                        <option value="q1">Q1 (Jan - Mar)</option>
+                        <option value="q2">Q2 (Apr - Jun)</option>
+                        <option value="q3">Q3 (Jul - Sep)</option>
+                        <option value="q4">Q4 (Oct - Dec)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Milestone Goal</label>
+                    <input type="text" id="yearly-goal-title" required placeholder="e.g., Launch Side SaaS Product" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm dark:text-white">
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-yearly-goal')" class="px-4 py-2 text-sm text-slate-500">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-brand-600 text-white rounded-xl">Add Milestone</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SETTINGS & DATA MODAL -->
+    <div id="modal-settings" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700 mb-4">
+                <h3 class="font-bold text-lg dark:text-white">Data & Settings</h3>
+                <button onclick="closeModal('modal-settings')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <h4 class="text-sm font-semibold dark:text-white mb-1">Export / Backup Data</h4>
+                    <p class="text-xs text-slate-500 mb-2">Save all tasks, goals, and reflections to a JSON file.</p>
+                    <button onclick="exportDataJSON()" class="w-full py-2 px-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-xs font-medium rounded-xl flex items-center justify-center space-x-2">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Export JSON Backup</span>
+                    </button>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-semibold dark:text-white mb-1">Import Data</h4>
+                    <p class="text-xs text-slate-500 mb-2">Restore tasks from a backup file.</p>
+                    <input type="file" id="import-file" accept=".json" onchange="importDataJSON(event)" class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <button onclick="clearAllData()" class="w-full py-2 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/20 dark:text-rose-400 text-xs font-medium rounded-xl flex items-center justify-center space-x-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Reset & Clear All Local Data</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCRIPT LOGIC -->
+    <script>
+        // State Management
+        let appState = {
+            tasks: [],           // Array of task objects
+            monthlyGoals: {},    // Key: "YYYY-MM", Value: String
+            yearlyGoals: [],     // Array of { id, year, quarter, title, status }
+            currentDate: new Date().toISOString().split('T')[0],
+            currentWeekStart: getStartOfWeek(new Date()),
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            activeTab: 'daily'
+        };
+
+        // Chart Instances
+        let bottleneckChartInstance = null;
+        let priorityRatioChartInstance = null;
+
+        // Initialize App
+        window.onload = function() {
+            lucide.createIcons();
+            loadStateFromLocalStorage();
+            initTheme();
+            setDailyToday();
+            renderAllViews();
+        };
+
+        // Date Utilities
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDateString(dateObj) {
+            return dateObj.toISOString().split('T')[0];
+        }
+
+        // Dark Mode Logic
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+            }
+            lucide.createIcons();
+        }
+
+        // Local Storage Sync
+        function saveStateToLocalStorage() {
+            localStorage.setItem('chronos_app_state', JSON.stringify({
+                tasks: appState.tasks,
+                monthlyGoals: appState.monthlyGoals,
+                yearlyGoals: appState.yearlyGoals
+            }));
+        }
+
+        function loadStateFromLocalStorage() {
+            const saved = localStorage.getItem('chronos_app_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState.tasks = parsed.tasks || [];
+                    appState.monthlyGoals = parsed.monthlyGoals || {};
+                    appState.yearlyGoals = parsed.yearlyGoals || [];
+                } catch(e) {
+                    console.error("Failed loading local storage", e);
+                }
+            }
+        }
+
+        // Navigation Switching
+        function switchTab(tabName) {
+            appState.activeTab = tabName;
+            document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+
+            // Desktop Tab styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
+            });
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            if(activeBtn) activeBtn.className = 'tab-btn px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center space-x-1.5 text-brand-600 dark:text-brand-400 bg-white dark:bg-slate-800 shadow-sm';
+
+            // Mobile Tab styles
+            document.querySelectorAll('.tab-btn-m').forEach(btn => {
+                btn.className = 'tab-btn-m p-2 text-slate-500 flex flex-col items-center text-xs font-medium';
+            });
+            const activeMBtn = document.getElementById(`mtab-${tabName}`);
+            if(activeMBtn) activeMBtn.className = 'tab-btn-m p-2 text-brand-600 flex flex-col items-center text-xs font-medium';
+
+            renderAllViews();
+        }
+
+        function renderAllViews() {
+            if (appState.activeTab === 'daily') renderDailyTasks();
+            if (appState.activeTab === 'weekly') renderWeeklyGrid();
+            if (appState.activeTab === 'monthly') renderMonthlyCalendar();
+            if (appState.activeTab === 'yearly') renderYearlyRoadmap();
+            if (appState.activeTab === 'analytics') renderAnalytics();
+        }
+
+        // ==========================================
+        // 1. DAILY PLANNER LOGIC
+        // ==========================================
+        function setDailyToday() {
+            appState.currentDate = new Date().toISOString().split('T')[0];
+            document.getElementById('daily-date-picker').value = appState.currentDate;
+            renderDailyTasks();
+        }
+
+        function changeDailyDate(offset) {
+            const current = new Date(appState.currentDate);
+            current.setDate(current.getDate() + offset);
+            appState.currentDate = current.toISOString().split('T')[0];
+            document.getElementById('daily-date-picker').value = appState.currentDate;
+            renderDailyTasks();
+        }
+
+        function onDailyDateChange(val) {
+            if(val) {
+                appState.currentDate = val;
+                renderDailyTasks();
+            }
+        }
+
+        function renderDailyTasks() {
+            const majorList = document.getElementById('major-tasks-list');
+            const minorList = document.getElementById('minor-tasks-list');
+            const search = document.getElementById('daily-search').value.toLowerCase();
+            const filter = document.getElementById('daily-filter').value;
+
+            majorList.innerHTML = '';
+            minorList.innerHTML = '';
+
+            const dayTasks = appState.tasks.filter(t => t.date === appState.currentDate && 
+                (t.title.toLowerCase().includes(search) || (t.desc && t.desc.toLowerCase().includes(search)))
+            );
+
+            const majorTasks = dayTasks.filter(t => t.priority === 'major');
+            const minorTasks = dayTasks.filter(t => t.priority === 'minor');
+
+            // Capacity Warning Logic
+            const warnEl = document.getElementById('capacity-warning');
+            if (majorTasks.length > 3) {
+                warnEl.classList.remove('hidden');
+            } else {
+                warnEl.classList.add('hidden');
+            }
+
+            document.getElementById('major-count-badge').innerText = `${majorTasks.filter(t=>t.status==='completed').length}/${majorTasks.length}`;
+            document.getElementById('minor-count-badge').innerText = `${minorTasks.filter(t=>t.status==='completed').length}/${minorTasks.length}`;
+
+            if (filter !== 'minor') {
+                if (majorTasks.length === 0) {
+                    majorList.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-6">No major goals for this day.</p>`;
+                } else {
+                    majorTasks.forEach(t => majorList.appendChild(createTaskCardElement(t)));
+                }
+            }
+
+            if (filter !== 'major') {
+                if (minorTasks.length === 0) {
+                    minorList.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-6">No minor tasks for this day.</p>`;
+                } else {
+                    minorTasks.forEach(t => minorList.appendChild(createTaskCardElement(t)));
+                }
+            }
+
+            renderHourlySchedule(dayTasks);
+            lucide.createIcons();
+        }
+
+        function createTaskCardElement(task) {
+            const div = document.createElement('div');
+            const isCompleted = task.status === 'completed';
+            const isMissed = task.status === 'missed';
+
+            div.className = `p-3.5 rounded-xl border transition-all flex flex-col space-y-2 ${
+                isCompleted 
+                    ? 'bg-slate-50/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-75' 
+                    : isMissed 
+                        ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50' 
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-md'
+            }`;
+
+            const statusBadge = isCompleted 
+                ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold">Done</span>'
+                : isMissed 
+                    ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 font-semibold">Missed</span>'
+                    : '<span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 font-semibold">Pending</span>';
+
+            div.innerHTML = `
+                <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-start space-x-2.5">
+                        <button onclick="toggleTaskCompletion('${task.id}')" class="mt-0.5 shrink-0 text-slate-400 hover:text-emerald-500 transition-colors">
+                            <i data-lucide="${isCompleted ? 'check-circle-2' : 'circle'}" class="w-5 h-5 ${isCompleted ? 'text-emerald-500 fill-emerald-100 dark:fill-emerald-950' : ''}"></i>
+                        </button>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-100 ${isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : ''}">${escapeHtml(task.title)}</h4>
+                            ${task.time ? `<span class="text-xs text-slate-400 flex items-center mt-0.5"><i data-lucide="clock" class="w-3 h-3 mr-1"></i>${task.time} (${task.duration || 30}m)</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1 shrink-0">
+                        ${statusBadge}
+                        <button onclick="openEditTaskModal('${task.id}')" class="p-1 text-slate-400 hover:text-slate-600"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button>
+                        <button onclick="deleteTask('${task.id}')" class="p-1 text-slate-400 hover:text-rose-600"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                </div>
+                ${task.desc ? `<p class="text-xs text-slate-500 dark:text-slate-400 pl-7 line-clamp-2">${escapeHtml(task.desc)}</p>` : ''}
+                ${task.reflection ? `<div class="mt-2 ml-7 p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-[11px] text-slate-600 dark:text-slate-300 italic">
+                    <strong>Reflection:</strong> ${escapeHtml(task.reflection.notes || task.reflection.reason)}
+                </div>` : ''}
+            `;
+            return div;
+        }
+
+        function renderHourlySchedule(tasks) {
+            const scheduleEl = document.getElementById('hourly-schedule');
+            scheduleEl.innerHTML = '';
+
+            const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+            
+            hours.forEach(h => {
+                const hourFormatted = h < 10 ? `0${h}:00` : `${h}:00`;
+                const matchingTasks = tasks.filter(t => t.time && parseInt(t.time.split(':')[0]) === h);
+
+                const slot = document.createElement('div');
+                slot.className = "p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col justify-between text-xs";
+                
+                let taskHTML = '';
+                matchingTasks.forEach(t => {
+                    taskHTML += `<div class="mt-1 p-1.5 rounded-lg text-[11px] ${t.priority==='major'?'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200':'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'} truncate font-medium">
+                        ${escapeHtml(t.title)}
+                    </div>`;
+                });
+
+                slot.innerHTML = `
+                    <div class="flex justify-between text-slate-400 font-mono text-[10px]">
+                        <span>${hourFormatted}</span>
+                        ${matchingTasks.length ? `<span class="font-bold text-brand-600">${matchingTasks.length} task</span>` : ''}
+                    </div>
+                    ${taskHTML || '<span class="text-[10px] text-slate-300 dark:text-slate-600 italic">Available slot</span>'}
+                `;
+                scheduleEl.appendChild(slot);
+            });
+        }
+
+        // ==========================================
+        // 2. WEEKLY PLANNER LOGIC
+        // ==========================================
+        function changeWeek(offset) {
+            appState.currentWeekStart.setDate(appState.currentWeekStart.getDate() + (offset * 7));
+            renderWeeklyGrid();
+        }
+
+        function setWeekCurrent() {
+            appState.currentWeekStart = getStartOfWeek(new Date());
+            renderWeeklyGrid();
+        }
+
+        function renderWeeklyGrid() {
+            const grid = document.getElementById('weekly-grid');
+            grid.innerHTML = '';
+
+            const startDate = new Date(appState.currentWeekStart);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 6);
+
+            document.getElementById('weekly-range-label').innerText = `${startDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})} - ${endDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+
+            for(let i=0; i<7; i++) {
+                const day = new Date(startDate);
+                day.setDate(day.getDate() + i);
+                const dateStr = formatDateString(day);
+
+                const dayTasks = appState.tasks.filter(t => t.date === dateStr);
+                const isToday = dateStr === new Date().toISOString().split('T')[0];
+
+                const col = document.createElement('div');
+                col.className = `bg-white dark:bg-slate-800 rounded-2xl border p-3 flex flex-col space-y-3 min-h-[300px] ${isToday ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-slate-200 dark:border-slate-700'}`;
+
+                col.innerHTML = `
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block">${day.toLocaleDateString('en-US', {weekday: 'short'}).toUpperCase()}</span>
+                            <span class="text-sm font-bold ${isToday ? 'text-brand-600 dark:text-brand-400' : 'text-slate-800 dark:text-white'}">${day.getDate()}</span>
+                        </div>
+                        <button onclick="openNewTaskModalWithDate('${dateStr}')" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="space-y-2 flex-1">
+                        ${dayTasks.map(t => `
+                            <div class="p-2 rounded-xl text-xs border ${t.priority==='major'?'bg-rose-50 border-rose-200 text-rose-900 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-200':'bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200'}">
+                                <div class="font-medium truncate ${t.status==='completed'?'line-through opacity-60':''}">${escapeHtml(t.title)}</div>
+                                <div class="text-[10px] text-slate-400 flex justify-between mt-1">
+                                    <span>${t.time || 'Anytime'}</span>
+                                    <span class="capitalize font-semibold">${t.priority}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                grid.appendChild(col);
+            }
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 3. MONTHLY PLANNER LOGIC
+        // ==========================================
+        function changeMonth(offset) {
+            appState.currentMonth += offset;
+            if(appState.currentMonth > 11) {
+                appState.currentMonth = 0;
+                appState.currentYear++;
+            } else if(appState.currentMonth < 0) {
+                appState.currentMonth = 11;
+                appState.currentYear--;
+            }
+            renderMonthlyCalendar();
+        }
+
+        function renderMonthlyCalendar() {
+            const date = new Date(appState.currentYear, appState.currentMonth, 1);
+            const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            document.getElementById('monthly-label').innerText = monthName;
+
+            // Monthly Goal Focus
+            const monthKey = `${appState.currentYear}-${String(appState.currentMonth + 1).padStart(2, '0')}`;
+            const goalText = appState.monthlyGoals[monthKey] || "No primary goal set for this month yet.";
+            document.getElementById('monthly-goal-text').innerText = goalText;
+
+            const grid = document.getElementById('monthly-calendar-grid');
+            grid.innerHTML = '';
+
+            const firstDayIndex = date.getDay();
+            const lastDay = new Date(appState.currentYear, appState.currentMonth + 1, 0).getDate();
+
+            // Prev month blank days
+            for(let x = 0; x < firstDayIndex; x++) {
+                const empty = document.createElement('div');
+                empty.className = "h-24 bg-slate-50/50 dark:bg-slate-900/20 rounded-xl";
+                grid.appendChild(empty);
+            }
+
+            // Month days
+            for(let i = 1; i <= lastDay; i++) {
+                const dayStr = `${appState.currentYear}-${String(appState.currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const dayTasks = appState.tasks.filter(t => t.date === dayStr);
+                const majorCount = dayTasks.filter(t => t.priority === 'major').length;
+                const completedCount = dayTasks.filter(t => t.status === 'completed').length;
+
+                const dayCell = document.createElement('div');
+                dayCell.className = "h-24 p-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-xl flex flex-col justify-between hover:border-brand-500 cursor-pointer transition-colors";
+                dayCell.onclick = () => {
+                    appState.currentDate = dayStr;
+                    document.getElementById('daily-date-picker').value = dayStr;
+                    switchTab('daily');
+                };
+
+                dayCell.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${i}</span>
+                        ${dayTasks.length ? `<span class="text-[10px] px-1.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300 rounded-full font-medium">${completedCount}/${dayTasks.length}</span>` : ''}
+                    </div>
+                    <div class="space-y-1">
+                        ${majorCount ? `<div class="text-[10px] bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 p-1 rounded font-medium truncate">${majorCount} Major Goal(s)</div>` : ''}
+                    </div>
+                `;
+                grid.appendChild(dayCell);
+            }
+        }
+
+        function openMonthlyGoalModal() {
+            const monthKey = `${appState.currentYear}-${String(appState.currentMonth + 1).padStart(2, '0')}`;
+            document.getElementById('monthly-goal-input').value = appState.monthlyGoals[monthKey] || '';
+            document.getElementById('modal-monthly-goal').classList.remove('hidden');
+        }
+
+        function saveMonthlyGoal() {
+            const monthKey = `${appState.currentYear}-${String(appState.currentMonth + 1).padStart(2, '0')}`;
+            const val = document.getElementById('monthly-goal-input').value.trim();
+            if(val) {
+                appState.monthlyGoals[monthKey] = val;
+                saveStateToLocalStorage();
+                renderMonthlyCalendar();
+            }
+            closeModal('modal-monthly-goal');
+        }
+
+        // ==========================================
+        // 4. YEARLY GOALS ROADMAP LOGIC
+        // ==========================================
+        function changeYear(offset) {
+            appState.currentYear += offset;
+            renderYearlyRoadmap();
+        }
+
+        function renderYearlyRoadmap() {
+            document.getElementById('yearly-label').innerText = `Year ${appState.currentYear}`;
+            ['q1','q2','q3','q4'].forEach(q => {
+                const container = document.getElementById(`yearly-${q}-list`);
+                container.innerHTML = '';
+                
+                const goals = appState.yearlyGoals.filter(g => g.year === appState.currentYear && g.quarter === q);
+                if(goals.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">No milestones set.</p>`;
+                } else {
+                    goals.forEach(g => {
+                        const card = document.createElement('div');
+                        card.className = "p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex justify-between items-center text-xs";
+                        card.innerHTML = `
+                            <span class="font-medium dark:text-slate-200">${escapeHtml(g.title)}</span>
+                            <button onclick="deleteYearlyGoal('${g.id}')" class="text-slate-400 hover:text-rose-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                        `;
+                        container.appendChild(card);
+                    });
+                }
+            });
+            lucide.createIcons();
+        }
+
+        function openYearlyGoalModal() {
+            document.getElementById('modal-yearly-goal').classList.remove('hidden');
+        }
+
+        function handleSaveYearlyGoal(e) {
+            e.preventDefault();
+            const quarter = document.getElementById('yearly-quarter').value;
+            const title = document.getElementById('yearly-goal-title').value.trim();
+            if(title) {
+                appState.yearlyGoals.push({
+                    id: Date.now().toString(),
+                    year: appState.currentYear,
+                    quarter,
+                    title
+                });
+                saveStateToLocalStorage();
+                renderYearlyRoadmap();
+                closeModal('modal-yearly-goal');
+                document.getElementById('yearly-goal-title').value = '';
+            }
+        }
+
+        function deleteYearlyGoal(id) {
+            appState.yearlyGoals = appState.yearlyGoals.filter(g => g.id !== id);
+            saveStateToLocalStorage();
+            renderYearlyRoadmap();
+        }
+
+        // ==========================================
+        // 5. ANALYTICS & BOTTLENECK REPORT LOGIC
+        // ==========================================
+        function renderAnalytics() {
+            const totalTasks = appState.tasks.length;
+            const completedTasks = appState.tasks.filter(t => t.status === 'completed');
+            const missedTasks = appState.tasks.filter(t => t.status === 'missed');
+            const majorCompleted = completedTasks.filter(t => t.priority === 'major').length;
+
+            const completionRate = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
+
+            document.getElementById('stat-completion-rate').innerText = `${completionRate}%`;
+            document.getElementById('stat-major-done').innerText = majorCompleted;
+            document.getElementById('stat-missed-count').innerText = missedTasks.length;
+            
+            // Calculate Consistency Streak
+            document.getElementById('stat-streak').innerText = `${calculateStreak()} Days`;
+
+            renderBottleneckChart(missedTasks);
+            renderPriorityRatioChart();
+            renderReflectionLog();
+        }
+
+        function calculateStreak() {
+            // Consecutive days with at least 1 completed task
+            let streak = 0;
+            let checkDate = new Date();
+            
+            while(true) {
+                const dateStr = formatDateString(checkDate);
+                const dayCompleted = appState.tasks.some(t => t.date === dateStr && t.status === 'completed');
+                if(dayCompleted) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            return streak;
+        }
+
+        function renderBottleneckChart(missedTasks) {
+            const ctx = document.getElementById('chart-bottlenecks').getContext('2d');
+            
+            const reasonsCount = {
+                'Poor Time Estimation': 0,
+                'Unexpected Distractions': 0,
+                'Low Energy / Fatigue': 0,
+                'External Blocker': 0,
+                'Priority Shifted': 0
+            };
+
+            missedTasks.forEach(t => {
+                if(t.reflection && t.reflection.reason) {
+                    reasonsCount[t.reflection.reason] = (reasonsCount[t.reflection.reason] || 0) + 1;
+                }
+            });
+
+            if (bottleneckChartInstance) bottleneckChartInstance.destroy();
+
+            bottleneckChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(reasonsCount),
+                    datasets: [{
+                        label: 'Tasks Missed',
+                        data: Object.values(reasonsCount),
+                        backgroundColor: '#f43f5e',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        function renderPriorityRatioChart() {
+            const ctx = document.getElementById('chart-priority-ratio').getContext('2d');
+            
+            const majorCount = appState.tasks.filter(t => t.priority === 'major').length;
+            const minorCount = appState.tasks.filter(t => t.priority === 'minor').length;
+
+            if (priorityRatioChartInstance) priorityRatioChartInstance.destroy();
+
+            priorityRatioChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Major Goals', 'Minor Tasks'],
+                    datasets: [{
+                        data: [majorCount, minorCount],
+                        backgroundColor: ['#f43f5e', '#3b82f6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function renderReflectionLog() {
+            const logList = document.getElementById('reflection-log-list');
+            logList.innerHTML = '';
+
+            const reflectedTasks = appState.tasks.filter(t => t.reflection);
+            if(reflectedTasks.length === 0) {
+                logList.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-4">No reflections recorded yet. Complete or mark tasks missed to record notes.</p>`;
+                return;
+            }
+
+            reflectedTasks.reverse().forEach(t => {
+                const item = document.createElement('div');
+                item.className = "p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs";
+                item.innerHTML = `
+                    <div class="flex justify-between font-semibold mb-1">
+                        <span class="dark:text-white">${escapeHtml(t.title)}</span>
+                        <span class="text-slate-400">${t.date}</span>
+                    </div>
+                    <div class="text-slate-600 dark:text-slate-300">
+                        <span class="font-medium text-rose-500">${t.reflection.reason || 'Completed Reflection'}:</span> ${escapeHtml(t.reflection.notes || 'No extra notes.')}
+                    </div>
+                `;
+                logList.appendChild(item);
+            });
+        }
+
+        // ==========================================
+        // TASK CREATION / EDITING / REFLECTION HANDLERS
+        // ==========================================
+        function openNewTaskModal(priority = 'major') {
+            document.getElementById('modal-task-title').innerText = "Create New Task";
+            document.getElementById('task-id').value = '';
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-date').value = appState.currentDate;
+            document.getElementById('task-time').value = '';
+            document.getElementById('task-priority').value = priority;
+            document.getElementById('task-duration').value = '30';
+            document.getElementById('task-desc').value = '';
+            document.getElementById('modal-task').classList.remove('hidden');
+        }
+
+        function openNewTaskModalWithDate(dateStr) {
+            openNewTaskModal();
+            document.getElementById('task-date').value = dateStr;
+        }
+
+        function openEditTaskModal(id) {
+            const task = appState.tasks.find(t => t.id === id);
+            if(!task) return;
+
+            document.getElementById('modal-task-title').innerText = "Edit Task";
+            document.getElementById('task-id').value = task.id;
+            document.getElementById('task-title').value = task.title;
+            document.getElementById('task-date').value = task.date;
+            document.getElementById('task-time').value = task.time || '';
+            document.getElementById('task-priority').value = task.priority;
+            document.getElementById('task-duration').value = task.duration || 30;
+            document.getElementById('task-desc').value = task.desc || '';
+            document.getElementById('modal-task').classList.remove('hidden');
+        }
+
+        function handleSaveTask(e) {
+            e.preventDefault();
+            const id = document.getElementById('task-id').value;
+            const title = document.getElementById('task-title').value.trim();
+            const date = document.getElementById('task-date').value;
+            const time = document.getElementById('task-time').value;
+            const priority = document.getElementById('task-priority').value;
+            const duration = parseInt(document.getElementById('task-duration').value) || 30;
+            const desc = document.getElementById('task-desc').value.trim();
+
+            if(id) {
+                // Update Existing
+                const idx = appState.tasks.findIndex(t => t.id === id);
+                if(idx !== -1) {
+                    appState.tasks[idx] = { ...appState.tasks[idx], title, date, time, priority, duration, desc };
+                }
+            } else {
+                // Create New
+                appState.tasks.push({
+                    id: Date.now().toString(),
+                    title,
+                    date,
+                    time,
+                    priority,
+                    duration,
+                    desc,
+                    status: 'pending'
+                });
+            }
+
+            saveStateToLocalStorage();
+            renderAllViews();
+            closeModal('modal-task');
+        }
+
+        function toggleTaskCompletion(id) {
+            const task = appState.tasks.find(t => t.id === id);
+            if(!task) return;
+
+            if(task.status === 'completed') {
+                task.status = 'pending';
+                saveStateToLocalStorage();
+                renderAllViews();
+            } else {
+                // Open Reflection Modal for optional comments or mark missed
+                openReflectionModal(id, 'completed');
+            }
+        }
+
+        function openReflectionModal(id, targetStatus) {
+            document.getElementById('reflect-task-id').value = id;
+            document.getElementById('reflect-status-target').value = targetStatus;
+            
+            const missedContainer = document.getElementById('missed-reason-container');
+            const rolloverContainer = document.getElementById('rollover-option');
+
+            if(targetStatus === 'missed') {
+                document.getElementById('reflection-modal-title').innerText = "Mark Task as Missed";
+                missedContainer.classList.remove('hidden');
+                rolloverContainer.classList.remove('hidden');
+            } else {
+                document.getElementById('reflection-modal-title').innerText = "Task Completion & Reflection";
+                missedContainer.classList.add('hidden');
+                rolloverContainer.classList.add('hidden');
+            }
+
+            document.getElementById('reflect-notes').value = '';
+            document.getElementById('modal-reflection').classList.remove('hidden');
+        }
+
+        function handleSaveReflection(e) {
+            e.preventDefault();
+            const id = document.getElementById('reflect-task-id').value;
+            const targetStatus = document.getElementById('reflect-status-target').value;
+            const reason = document.getElementById('reflect-reason').value;
+            const notes = document.getElementById('reflect-notes').value.trim();
+            const shouldRollover = document.getElementById('reflect-rollover').checked;
+
+            const task = appState.tasks.find(t => t.id === id);
+            if(task) {
+                task.status = targetStatus;
+                task.reflection = {
+                    reason: targetStatus === 'missed' ? reason : 'Completed',
+                    notes
+                };
+
+                // Automatic Rollover Logic
+                if(targetStatus === 'missed' && shouldRollover) {
+                    const nextDate = new Date(task.date);
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    appState.tasks.push({
+                        ...task,
+                        id: Date.now().toString(),
+                        date: formatDateString(nextDate),
+                        status: 'pending',
+                        reflection: null
+                    });
+                }
+            }
+
+            saveStateToLocalStorage();
+            renderAllViews();
+            closeModal('modal-reflection');
+        }
+
+        function deleteTask(id) {
+            appState.tasks = appState.tasks.filter(t => t.id !== id);
+            saveStateToLocalStorage();
+            renderAllViews();
+        }
+
+        // Modal Helpers
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function openSettingsModal() {
+            document.getElementById('modal-settings').classList.remove('hidden');
+        }
+
+        // Export / Import Logic for GitHub Pages Persistence Backup
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `chronos_planner_backup_${formatDateString(new Date())}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if(parsed.tasks) {
+                        appState.tasks = parsed.tasks;
+                        appState.monthlyGoals = parsed.monthlyGoals || {};
+                        appState.yearlyGoals = parsed.yearlyGoals || [];
+                        saveStateToLocalStorage();
+                        renderAllViews();
+                        alert("Data imported successfully!");
+                        closeModal('modal-settings');
+                    }
+                } catch(err) {
+                    alert("Invalid JSON file format.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if(confirm("Are you sure you want to delete all tasks and planner history? This action cannot be undone.")) {
+                localStorage.removeItem('chronos_app_state');
+                appState.tasks = [];
+                appState.monthlyGoals = {};
+                appState.yearlyGoals = [];
+                renderAllViews();
+                closeModal('modal-settings');
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
